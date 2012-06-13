@@ -1,0 +1,9 @@
+[submodule "js-lib/scion"]
+	path = js-lib/scion
+	url = git://github.com/jbeard4/SCION.git
+[submodule "lib/python-spidermonkey"]
+	path = lib/python-spidermonkey
+	url = git://github.com/davisp/python-spidermonkey.git
+[submodule "js-lib/es5-shim"]
+	path = js-lib/es5-shim
+	url = git://github.com/kriskowal/es5-shim.git
