@@ -1,26 +1,29 @@
 import spidermonkey
 from lxml import etree
 import urllib2
-import pdb
+import os
+from StringIO import StringIO
 
 #create a new context
 rt = spidermonkey.Runtime()
 cx = rt.new_context()
 
+cwd = os.path.dirname(__file__)
+
 #load up es5-shim (old version of spidermonkey lacks some APIs)
-es5js = open("js-lib/es5-shim/es5-shim.js")
+es5js = open(os.path.join(cwd,"js-lib/es5-shim/es5-shim.js"))
 es5jsStr = es5js.read() 
 cx.execute(es5jsStr) 
 es5js.close() 
 
 #same for json2.js
-json2js = open("js-lib/json/json2.js")
+json2js = open(os.path.join(cwd,"js-lib/json/json2.js"))
 json2Str = json2js.read() 
 cx.execute(json2Str) 
 es5js.close() 
 
 #load up SCION
-scionjs = open("scion.js")
+scionjs = open(os.path.join(cwd,"scion.js"))
 scionJsStr = scionjs.read()
 cx.execute(scionJsStr)  
 scionjs.close()
@@ -56,7 +59,7 @@ interpreterFactory = cx.execute("""
     })();
 """)
 
-jsonMLTransform = etree.XSLT(etree.parse(open("lib/jsonml/jsonml.xslt")))
+jsonMLTransform = etree.XSLT(etree.parse(open(os.path.join(cwd,"lib/jsonml/jsonml.xslt"))))
 
 def urlToModel(url):
     s = urllib2.urlopen(url).read()
