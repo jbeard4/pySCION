@@ -1,3 +1,5 @@
+all : scion.js spidermonkey.so
+
 get-deps:
 	git submodule init && git submodule update
 	npm install git://github.com/jbeard4/stitch.git
@@ -6,12 +8,12 @@ get-deps:
 scion.js : get-deps
 	node js-src/build/stitch.js
 
-spidermonkey.so :
+spidermonkey.so : get-deps
 	cd lib/python-spidermonkey && python setup.py build
 	mv lib/python-spidermonkey/spidermonkey.so .
 
 clean : 
 	rm pyscion.js
 
-.PHONY : clean get-deps
+.PHONY : clean get-deps all
 
