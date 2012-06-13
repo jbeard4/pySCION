@@ -7,3 +7,9 @@
 [submodule "js-lib/es5-shim"]
 	path = js-lib/es5-shim
 	url = git://github.com/kriskowal/es5-shim.git
+[submodule "lib/jsonml"]
+	path = lib/jsonml
+	url = git://github.com/mckamey/jsonml.git
+[submodule "js-lib/json"]
+	path = js-lib/json
+	url = git://github.com/douglascrockford/JSON-js.git
