@@ -45,7 +45,7 @@ class SCIONTestHandler(BaseHTTPRequestHandler):
 
                 json.dump({
                     "sessionToken" : sessionToken,
-                    "nextConfiguration" : [id for id in conf]
+                    "nextConfiguration" : list(conf)
                 },self.wfile)
                 self.wfile.close()
     
@@ -60,7 +60,7 @@ class SCIONTestHandler(BaseHTTPRequestHandler):
 
                 self.send_response(200)
                 self.end_headers()
-                json.dump({ "nextConfiguration" : [id for id in nextConfiguration] },self.wfile)
+                json.dump({ "nextConfiguration" : list(nextConfiguration) },self.wfile)
                 self.wfile.close()
 
                 #TODO: deal with timeouts

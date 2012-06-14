@@ -83,7 +83,7 @@ class SCXML:
         self.interpreter = interpreterFactory(model)  
 
     def start(self):
-        return self.interpreter.start()
+        return set(self.interpreter.start())
 
     def gen(self,event,data={}):
-        return self.interpreter.gen(event,data)
+        return set(self.interpreter.gen(event,data))
