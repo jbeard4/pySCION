@@ -13,7 +13,7 @@ spidermonkey.so : get-deps
 	mv lib/python-spidermonkey/spidermonkey.so .
 
 clean : 
-	rm pyscion.js
+	rm pyscion.js spidermonkey.so
 
 .PHONY : clean get-deps all
 
