@@ -1,3 +1,4 @@
+from __future__ import print_function
 import spidermonkey
 from lxml import etree
 import urllib2
@@ -7,6 +8,8 @@ from StringIO import StringIO
 #create a new context
 rt = spidermonkey.Runtime()
 cx = rt.new_context()
+
+cx.add_global("print", print )   #expose a global print function to the spidermonkey context
 
 cwd = os.path.dirname(__file__)
 
@@ -54,7 +57,7 @@ interpreterFactory = cx.execute("""
         var scxml = require('core/scxml/SCXML');
 
         return function(model){
-            return new scxml.SimpleInterpreter(model);
+            return new scxml.SimpleInterpreter(model,{log : print});
         };
     })();
 """)

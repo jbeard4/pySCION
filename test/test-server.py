@@ -1,4 +1,4 @@
-from scion.SCXML import SCXML,documentStringToModel
+from scion.SCXML import SCXML,urlToModel
 from BaseHTTPServer import HTTPServer,BaseHTTPRequestHandler
 import json
 import sys
@@ -13,7 +13,7 @@ timeoutMs = 5000
 def loadScxml(scxmlStr):
     global sessionCounter 
 
-    model = documentStringToModel(scxmlStr)
+    model = urlToModel(scxmlStr)
     interpreter = SCXML(model)
 
     sessionToken = sessionCounter
