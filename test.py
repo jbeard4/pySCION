@@ -1,10 +1,8 @@
-from SCXML import pathToModel,SCXML
+from SCXML import pathToModel,createInterpreter
 
-m = pathToModel("test/basic1.scxml")
-print m
+model = pathToModel("test/basic1.scxml")
 
-interpreter = SCXML(m)
-print interpreter 
+interpreter = createInterpreter(model)
 
 initialConf = interpreter.start()
 print initialConf 

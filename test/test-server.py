@@ -1,4 +1,4 @@
-from scion.SCXML import SCXML,urlToModel
+from scion.SCXML import urlToModel,createInterpreter
 from BaseHTTPServer import HTTPServer,BaseHTTPRequestHandler
 import json
 import sys
@@ -10,24 +10,10 @@ sessions = {}
 timeouts = {}
 timeoutMs = 5000
 
-def loadScxml(scxmlStr):
-    global sessionCounter 
-
-    model = urlToModel(scxmlStr)
-    interpreter = SCXML(model)
-
-    sessionToken = sessionCounter
-    sessionCounter = sessionCounter + 1
-    sessions[sessionToken] = interpreter 
-
-    return [sessionToken,interpreter]
-
-def cleanUp(sessionToken):
-    del sessions[sessionToken]
-
 class SCIONTestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
+        global sessionCounter, sessions, timeouts, timeoutMs
 
         try: 
             s = self.rfile.read(int(self.headers['Content-Length']))
@@ -36,7 +22,13 @@ class SCIONTestHandler(BaseHTTPRequestHandler):
             if reqJson.has_key("load"):
                 print "Loading new statechart"
 
-                [sessionToken,interpreter] = loadScxml(reqJson["load"].encode("utf8"))
+                model = urlToModel(reqJson["load"].encode("utf8"))
+
+                interpreter = createInterpreter(model)
+
+                sessionToken = sessionCounter
+                sessionCounter = sessionCounter + 1
+                sessions[sessionToken] = interpreter 
 
                 conf = interpreter.start() 
 
@@ -48,7 +40,7 @@ class SCIONTestHandler(BaseHTTPRequestHandler):
                     "nextConfiguration" : list(conf)
                 },self.wfile)
                 self.wfile.close()
-    
+
                 #TODO: deal with timeouts
                 #timeouts[sessionToken] = setTimeout(function(){cleanUp(sessionToken)},timeoutMs)  
 

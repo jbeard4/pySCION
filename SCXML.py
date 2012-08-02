@@ -1,9 +1,9 @@
 from __future__ import print_function
 import spidermonkey
-from lxml import etree
 import urllib2
 import os
 from StringIO import StringIO
+from platform import ScionPlatform
 
 #create a new context
 rt = spidermonkey.Runtime()
@@ -31,62 +31,59 @@ scionJsStr = scionjs.read()
 cx.execute(scionJsStr)  
 scionjs.close()
 
+#TODO: pass in as a function argument, rather than exposing a global
+pythonPlatform = ScionPlatform(rt)
+cx.add_global("pythonPlatform", pythonPlatform )
+
+#TODO: tomorrow: update scion with changes. check in. 
+#consider using a synchronous api instead of an async one. not sure if this is possible...
+#write up some documentation, email the list....
+#bindings for seed, qt, and boost.
+#try to build on windows...
+
 #expose the js API here
-modelFactory = cx.execute("""
-    (function(){
-        var annotator = require('core/util/annotate-scxml-json'),
-            json2model = require('core/scxml/json2model');
- 
-        return function(scxmlJsonString){
-            //do the steps here to construct a model from a DOM object
-            //should look pretty similar to the other adapters (node, rhino, browser)
+[urlToModel,pathToModel,documentStringToModel,createInterpreter] = cx.execute("""
+    //define a new platform object
+    var scion = require('scion');
+    scion.ext.platformModule.platform = pythonPlatform; 
 
-            var scxmlJson = JSON.parse(scxmlJsonString);
+    //wrap these functions up in synchronous apis
+    function urlToModel(url){
+        var err, model;
+        scion.urlToModel(url,function(e,m){
+            err = e;
+            model = m;
+        });
+        if(err) throw err;
+        return model;
+    }
 
-            var annotatedScxmlJson = annotator.transform(scxmlJson);
+    function pathToModel(path){
+        var err, model;
+        scion.pathToModel(path,function(e,m){
+            err = e;
+            model = m;
+        });
+        if(err) throw err;
+        return model;
+    }
 
-            var model = json2model(annotatedScxmlJson); 
+    function documentStringToModel(s){
+        var err, model;
+        scion.documentStringToModel(s,function(e,m){
+            err = e;
+            model = m;
+        }); 
+        if(err) throw err;
+        return model;
+    }
 
-            return model;
-        };
-    })();
+    //regular function wrapper around the constructor function, 
+    //as this is not supported in python-spidermonkey
+    function createInterpreter(model){
+        return new scion.SCXML(model);
+    }
+
+    [urlToModel,pathToModel,documentStringToModel,createInterpreter];
 """)
 
-interpreterFactory = cx.execute("""
-    (function(){
-        var scxml = require('core/scxml/SCXML');
-
-        return function(model){
-            return new scxml.SimpleInterpreter(model,{log : print});
-        };
-    })();
-""")
-
-jsonMLTransform = etree.XSLT(etree.parse(open(os.path.join(cwd,"lib/jsonml/jsonml.xslt"))))
-
-def urlToModel(url):
-    s = urllib2.urlopen(url).read()
-    return documentStringToModel(s)
-
-def pathToModel(path):
-    return documentToModel(etree.parse(open(path)))
-
-def documentStringToModel(scxmlDocString):
-    return documentToModel(etree.parse(StringIO(scxmlDocString)))
-
-def documentToModel(scxmlDoc):
-    result = jsonMLTransform(scxmlDoc)
-    #pdb.set_trace()
-    return modelFactory(str(result))
-
-class SCXML:
-
-    def __init__(self,model):
-        #construct
-        self.interpreter = interpreterFactory(model)  
-
-    def start(self):
-        return set(self.interpreter.start())
-
-    def gen(self,event,data={}):
-        return set(self.interpreter.gen(event,data))
