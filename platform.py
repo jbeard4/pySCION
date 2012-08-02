@@ -1,8 +1,9 @@
 from xml.dom.minidom import parse, parseString
 import urllib2
 from os import path
-from urlparse import urlparse
+from urlparse import urlparse,urlunparse
 import sys
+from threading import Timer
 
 class ScionPlatformPathHelper(object):
 
@@ -20,22 +21,49 @@ class ScionPlatformPathHelper(object):
 
 class ScionPlatformUrlHelper(object):
 
-    def getPathFromUrl(url):
+    def getPathFromUrl(self,url):
         #parse url
         urlObject = urlparse(url)
 
         #extract path
         return urlObject[2]
 
-    def changeUrlPath(url,newPath):
+    def changeUrlPath(self,url,newPath):
         #parse url again
-        urlObject = urlparse(url);
+        urlObject = list(urlparse(url));
+        print('urlObject',urlObject)
 
         urlObject[2] = newPath
+        print('urlObject',urlObject)
 
         #create a new url, and return a string
-        return urlObject.geturl()
+        return urlunparse(urlObject)
 
+#FIXME: this class is just a quick-and-dirty solution to add setTimeout behaviour to SCION
+#really should function with a synchronized queue. will add this later.
+class ScionPlatformTimeoutManager(object):
+
+    def __init__(self):
+        self._timerMap = {}
+        self._timerCount = 0
+
+    def setTimeout(self,cb,dur):
+        t = Timer(float(dur)/1000, cb)
+
+        self._timerCount = self._timerCount + 1
+        timerHandle = self._timerCount
+        self._timerMap[timerHandle] = t
+
+        t.start()
+
+        return timerHandle 
+
+    def clearTimeout(self,handle):
+        if self._timerMap.hasKey(handle):
+            t = self._timerMap[handle]
+            t.cancel()
+
+            del self._timerMap[handle]
 
 class ScionPlatform(object): 
 
@@ -43,6 +71,10 @@ class ScionPlatform(object):
         self._rt = rt
         self.path = ScionPlatformPathHelper()
         self.url = ScionPlatformUrlHelper()
+
+        scionPlatformTimeoutManager = ScionPlatformTimeoutManager()
+        self.setTimeout = scionPlatformTimeoutManager.setTimeout 
+        self.clearTimeout = scionPlatformTimeoutManager.clearTimeout 
 
     def getDocumentFromUrl(self,url,cb):
         try: 
@@ -62,6 +94,7 @@ class ScionPlatform(object):
         try:
             f = open(path)
             s = f.read()
+            f.close()
             self.parseDocumentFromString(s,cb)
         except:
             cb(sys.exc_info())
@@ -69,8 +102,21 @@ class ScionPlatform(object):
     def getResourceFromUrl(self,url,cb):
         #TODO: fix this: parse the url and stuff. look at the protocol. get the resource
         try: 
-            s = urllib2.urlopen(url).read()
-            cb(None,s)
+            urlObject = urlparse(url)
+            scheme = urlObject[0]
+            path = urlObject[2]
+            if scheme == "http":
+                #http url
+                s = urllib2.urlopen(url).read()
+                cb(None,s)
+            elif path and not scheme: 
+                f = open(path)
+                s = f.read()
+                f.close()
+                cb(None,s)
+            else:
+                #pass through an exception: not supported
+                cb(Exception("Unable to handle URL",url))
         except:
             cb(sys.exc_info())
 
