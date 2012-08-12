@@ -39,6 +39,61 @@ class ScionPlatformUrlHelper(object):
         #create a new url, and return a string
         return urlunparse(urlObject)
 
+class ScionPlatformDomHelper(object):
+
+    #these first two methods return JavaScript arrays, and so are done in JavaScript
+
+    #def getChildren(self,node):
+    #    return node.childNodes
+
+    #def getElementChildren(self,node):
+    #    return [child for child in node.childNodes if child.nodeType is 1]
+
+    def localName(self,node):
+        return node.localName
+
+    def getAttribute(self,node,attribute):
+        return node.getAttribute(attribute)  
+
+    def hasAttribute(self,node,attribute):
+        return node.hasAttribute(attribute)
+
+    def namespaceURI(self,node):
+        return node.namespaceURI
+
+    def createElementNS(self,doc,ns,localName):
+        return doc.createElementNS(ns,localName)
+
+    def setAttribute(self,node,name,value):
+        return node.setAttribute(name,value)
+
+    def appendChild(self,parent,child):
+        return parent.appendChild(child)
+
+    def textContent(self,node,txt=None):
+        if txt is None:
+            if node.nodeType is 1:
+                #element
+                return "".join([child.data for child in node.childNodes if child.nodeType is 3])
+            elif node.nodeType is 3:
+                #textnode
+                return node.data;
+            else:
+                return ""
+        else:
+            if node.nodeType is 1:
+                #clear out existing child nodes
+                for child in node.childNodes: node.removeChild(child)
+
+                tn = node.ownerDocument.createTextNode(txt)
+                node.appendChild(tn)
+                return txt;
+            elif node.nodeType is 3:
+                #textnode
+                node.data = txt
+                return txt
+
+
 #FIXME: this class is just a quick-and-dirty solution to add setTimeout behaviour to SCION
 #really should function with a synchronized queue. will add this later.
 class ScionPlatformTimeoutManager(object):
@@ -71,6 +126,7 @@ class ScionPlatform(object):
         self._rt = rt
         self.path = ScionPlatformPathHelper()
         self.url = ScionPlatformUrlHelper()
+        self.dom = ScionPlatformDomHelper()
 
         scionPlatformTimeoutManager = ScionPlatformTimeoutManager()
         self.setTimeout = scionPlatformTimeoutManager.setTimeout 

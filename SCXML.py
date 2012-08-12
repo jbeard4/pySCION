@@ -45,7 +45,22 @@ cx.add_global("pythonPlatform", pythonPlatform )
 [urlToModel,pathToModel,documentStringToModel,createInterpreter] = cx.execute("""
     //define a new platform object
     var scion = require('scion');
+    var basePlatform = scion.ext.platformModule.platform;
     scion.ext.platformModule.platform = pythonPlatform; 
+
+    //these two dom helper functions need to be implemented in js, because they must return js arrays,
+    //which currently can't be done from Python
+    scion.ext.platformModule.platform.dom.getChildren = function(node){
+        var r = [];
+        for(var i = 0; i < node.childNodes.length; i++){
+            r.push(node.childNodes[i]);
+        }
+        return r;
+    }
+
+    scion.ext.platformModule.platform.dom.getElementChildren = function(node){
+        return this.getChildren(node).filter(function(n){return n.nodeType === 1;});
+    }
 
     //wrap these functions up in synchronous apis
     function urlToModel(url){
