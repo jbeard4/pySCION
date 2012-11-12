@@ -7,8 +7,7 @@ var pkg = stitch.createPackage({
     excludes : [
         path.join('js-lib','scion','lib','node'),
         path.join('js-lib','scion','lib','rhino'),
-        path.join('js-lib','scion','lib','browser'),
-        path.join('js-lib','scion','lib','external','jsUri','build')
+        path.join('js-lib','scion','lib','browser')
     ]
 });
 
